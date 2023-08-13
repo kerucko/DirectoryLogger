@@ -1,0 +1,14 @@
+storage:
+  host: localhost
+  port: 3306
+  user: root
+  password: mysql_password1
+  database: directory_logger
+directories:
+  - path: D:\test1
+    regexp:
+      - .*.txt$
+  - path: D:\test2
+    regexp:
+      - .*k.txt$
+      - .*q.txt$

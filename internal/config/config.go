@@ -26,8 +26,10 @@ type DirConfig struct {
 var C Config
 
 func ReadConfig() {
+	log.Println("read config")
 	if err := cleanenv.ReadConfig("config.yml", &C); err != nil {
-		help, _ := cleanenv.GetDescription(C, nil)
-		log.Fatalf("ERROR ReadConfig: %v/n%v", err, help)
+		log.Printf("ERROR ReadConfig")
+		panic(err)
 	}
+	log.Println("CONFIG:", C)
 }

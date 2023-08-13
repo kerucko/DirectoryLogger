@@ -8,4 +8,5 @@ import (
 func main() {
 	config.ReadConfig()
 	database.Init()
+	defer database.DB.Close()
 }
