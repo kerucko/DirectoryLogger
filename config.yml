@@ -6,9 +6,11 @@ storage:
   database: directory_logger
 directories:
   - path: D:\test1
-    regexp:
+    include_regexp:
       - .*.txt$
+    exclude_regexp:
+      - .*a.txt$
   - path: D:\test2
-    regexp:
+    include_regexp:
       - .*k.txt$
       - .*q.txt$

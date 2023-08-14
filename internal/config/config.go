@@ -19,8 +19,9 @@ type DBConfig struct {
 }
 
 type DirConfig struct {
-	Path   string   `yaml:"path"`
-	Regexp []string `yaml:"regexp"`
+	Path          string   `yaml:"path"`
+	IncludeRegexp []string `yaml:"include_regexp"`
+	ExcludeRegexp []string `yaml:"exclude_regexp"`
 }
 
 var C Config
