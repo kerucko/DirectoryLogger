@@ -5,12 +5,12 @@ storage:
   password: mysql_password1
   database: directory_logger
 directories:
-  - path: D:\test1
+  - path: ./tmp/test1
     include_regexp:
       - .*.txt$
     exclude_regexp:
       - .*a.txt$
-  - path: D:\test2
+  - path: ./tmp/test2
     include_regexp:
       - .*k.txt$
       - .*q.txt$
