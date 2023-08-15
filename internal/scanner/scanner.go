@@ -1,8 +1,10 @@
 package scanner
 
 import (
+	"errors"
 	"github.com/fsnotify/fsnotify"
 	"go_directory_logger/internal/config"
+	"go_directory_logger/pkg/database"
 	"log"
 	"os"
 	"path/filepath"
@@ -55,11 +57,8 @@ func (s *Scanner) Scan() chan fsnotify.Event {
 					close(events)
 					return
 				}
-				log.Println("event:", event)
+				//log.Println("event:", event)
 				events <- event
-				//if event.Has(fsnotify.Write) {
-				//	log.Println("modified file:", event.Name)
-				//}
 			case err, ok := <-s.Watcher.Errors:
 				if !ok {
 					log.Println("error watcher.Errors:", err)
@@ -89,7 +88,6 @@ func (s *Scanner) RegexpFilter(events chan fsnotify.Event) chan fsnotify.Event {
 					panic(err)
 				}
 				if ok {
-					log.Printf("path: '%s' is %s\n", event.Name, includeReg)
 					flag = true
 					break
 				}
@@ -104,7 +102,6 @@ func (s *Scanner) RegexpFilter(events chan fsnotify.Event) chan fsnotify.Event {
 					panic(err)
 				}
 				if ok {
-					log.Printf("path: '%s' isnt %s\n", event.Name, excludeReg)
 					flag = false
 					break
 				}
@@ -124,8 +121,31 @@ func (s *Scanner) RegexpFilter(events chan fsnotify.Event) chan fsnotify.Event {
 	return out
 }
 
-func (s *Scanner) Log(events chan fsnotify.Event) {
+func (s *Scanner) Log(events chan fsnotify.Event) error {
 	for event := range events {
-		log.Println("LOG:", event)
+		log.Println("add in DB:", event)
+		stmt, err := database.DB.Prepare("INSERT INTO directory_logger.files (dirPath, filename, operation, date) VALUES (?, ?, ?, NOW())")
+		if err != nil {
+			return err
+		}
+		defer stmt.Close()
+
+		dirPath, filename := filepath.Split(event.Name)
+		operations := make(map[int]string)
+		operations[1] = "CREATE"
+		operations[2] = "WRITE"
+		operations[4] = "REMOVE"
+		operations[8] = "RENAME"
+		operations[16] = "CHMOD"
+
+		res, err := stmt.Exec(dirPath, filename, operations[int(event.Op)])
+		if err != nil {
+			return err
+		}
+		if r, _ := res.RowsAffected(); r != 1 {
+			return errors.New("res.RowsAffected != 1")
+		}
 	}
+
+	return nil
 }

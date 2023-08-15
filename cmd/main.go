@@ -3,14 +3,15 @@ package main
 import (
 	"go_directory_logger/internal/config"
 	"go_directory_logger/internal/scanner"
+	"go_directory_logger/pkg/database"
 	"log"
 	"sync"
 )
 
 func main() {
 	config.ReadConfig()
-	//database.Init()
-	//defer database.DB.Close()
+	database.Init()
+	defer database.DB.Close()
 
 	var wg sync.WaitGroup
 	wg.Add(len(config.C.Directories))
@@ -22,7 +23,11 @@ func main() {
 		}
 		go func() {
 			defer wg.Done()
-			s.Log(s.RegexpFilter(s.Scan()))
+			err := s.Log(s.RegexpFilter(s.Scan()))
+			if err != nil {
+				log.Println("error in scanner.Log")
+				panic(err)
+			}
 		}()
 	}
 
