@@ -3,9 +3,11 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"go_directory_logger/internal/config"
 	"log"
+
+	"go_directory_logger/internal/config"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var DB *sql.DB

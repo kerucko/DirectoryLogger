@@ -1,11 +1,12 @@
 package main
 
 import (
+	"log"
+	"sync"
+	
 	"go_directory_logger/internal/config"
 	"go_directory_logger/internal/scanner"
 	"go_directory_logger/pkg/database"
-	"log"
-	"sync"
 )
 
 func main() {

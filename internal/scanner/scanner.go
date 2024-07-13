@@ -2,13 +2,15 @@ package scanner
 
 import (
 	"errors"
-	"github.com/fsnotify/fsnotify"
-	"go_directory_logger/internal/config"
-	"go_directory_logger/pkg/database"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"go_directory_logger/internal/config"
+	"go_directory_logger/pkg/database"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 type Scanner struct {
@@ -49,12 +51,12 @@ func (s *Scanner) Scan() chan fsnotify.Event {
 
 	go func() {
 		defer s.Watcher.Close()
+		defer close(events)
 		for {
 			select {
 			case event, ok := <-s.Watcher.Events:
 				if !ok {
 					log.Println("error watcher.Events; event")
-					close(events)
 					return
 				}
 				//log.Println("event:", event)
@@ -62,13 +64,11 @@ func (s *Scanner) Scan() chan fsnotify.Event {
 			case err, ok := <-s.Watcher.Errors:
 				if !ok {
 					log.Println("error watcher.Errors:", err)
-					close(events)
 					return
 				}
 				log.Println("error:", err)
 			}
 		}
-		close(events)
 	}()
 
 	return events
