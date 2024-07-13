@@ -1,5 +1,5 @@
 storage:
-  host: localhost
+  host: mysql
   port: 3306
   user: root
   password: mysql_password1

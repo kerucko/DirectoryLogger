@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  app:
+    container_name: directory_logger
+    build: .
+    command: sh -c "sleep 10 && make migrate && ./directory_logger"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - CONFIG_PATH=./config.yaml
+  db:
+    container_name: mysql
+    restart: always
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=directory_logger
+      - MYSQL_ROOT_PASSWORD=mysql_password1
+    ports:
+      - "3306:3306"
