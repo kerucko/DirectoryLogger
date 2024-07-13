@@ -20,6 +20,10 @@ type Scanner struct {
 }
 
 func NewScanner(config config.DirConfig) (*Scanner, error) {
+	if _, err := os.Stat(config.Path); err != nil {
+		return nil, err
+	}
+
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
@@ -27,10 +31,10 @@ func NewScanner(config config.DirConfig) (*Scanner, error) {
 
 	err = filepath.Walk(config.Path, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
-			log.Printf("dir '%s' added in watcher\n", path)
 			if err := w.Add(path); err != nil {
 				return err
 			}
+			log.Printf("dir '%s' added in watcher\n", path)
 		}
 		return nil
 	})
@@ -123,7 +127,14 @@ func (s *Scanner) RegexpFilter(events chan fsnotify.Event) chan fsnotify.Event {
 
 func (s *Scanner) Log(events chan fsnotify.Event) error {
 	for event := range events {
-		log.Println("add in DB:", event)
+		operations := map[int]string{
+			1:  "CREATE",
+			2:  "WRITE",
+			4:  "REMOVE",
+			8:  "RENAME",
+			16: "CHMOD",
+		}
+
 		stmt, err := database.DB.Prepare("INSERT INTO directory_logger.files (dirPath, filename, operation, date) VALUES (?, ?, ?, NOW())")
 		if err != nil {
 			return err
@@ -131,17 +142,12 @@ func (s *Scanner) Log(events chan fsnotify.Event) error {
 		defer stmt.Close()
 
 		dirPath, filename := filepath.Split(event.Name)
-		operations := make(map[int]string)
-		operations[1] = "CREATE"
-		operations[2] = "WRITE"
-		operations[4] = "REMOVE"
-		operations[8] = "RENAME"
-		operations[16] = "CHMOD"
-
 		res, err := stmt.Exec(dirPath, filename, operations[int(event.Op)])
 		if err != nil {
 			return err
 		}
+		log.Printf("add in DB: %s %s %s\n", dirPath, filename, operations[int(event.Op)])
+		
 		if r, _ := res.RowsAffected(); r != 1 {
 			return errors.New("res.RowsAffected != 1")
 		}
